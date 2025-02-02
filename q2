@@ -1,0 +1,48 @@
+import speech_recognition as sr
+import wave
+import contextlib
+
+# Path to your uploaded WAV file in Colab
+audio_path = audio_path = "C:\\Users\\NICOLE\\Downloads\\sample_a.wav"
+ 
+
+# Function to transcribe audio
+def transcribe_audio(audio_path):
+    recognizer = sr.Recognizer()
+    with sr.AudioFile(audio_path) as source:
+        audio = recognizer.record(source)  # Read full audio file
+    try:
+        text = recognizer.recognize_google(audio)  # Use Google Web Speech API
+        return text
+    except sr.UnknownValueError:
+        return "Speech not recognized"
+    except sr.RequestError:
+        return "Error with Speech Recognition API"
+
+# Function to calculate WPM
+def calculate_wpm(audio_path, text):
+    words = len(text.split())  # Count words in the transcript
+    with contextlib.closing(wave.open(audio_path, 'r')) as f:
+        frames = f.getnframes()
+        rate = f.getframerate()
+        duration = frames / float(rate)  # Get duration in seconds
+    minutes = duration / 60  # Convert duration to minutes
+    wpm = words / minutes if minutes > 0 else 0  # Avoid division by zero
+    
+    # Classify speed
+    if wpm < 120:
+        speed = "SLOW"
+    elif 120 <= wpm <= 150:
+        speed = "NORMAL"
+    else:
+        speed = "FAST"
+    
+    return wpm, speed
+
+# Process the audio
+transcript = transcribe_audio(audio_path)
+wpm, speed = calculate_wpm(audio_path, transcript)
+
+print(f"Transcript: {transcript}")
+print(f"Words Per Minute: {wpm}")
+print(f"Speech Speed: {speed}")
